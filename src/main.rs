@@ -20,6 +20,14 @@ enum CellState{
     Reject,
 }
 
+
+#[derive(Clone)]
+#[derive(Copy)]
+enum CellResult{
+    Tree,
+    Empty,
+}
+
 fn get_cell_at_memo(cache: &mut HashMap<(i32,i32,u32),CellState>, x: i32, y: i32, t: u32) -> CellState {
     fn memoize_val(cache: &mut HashMap<(i32,i32,u32),CellState>, x: i32, y: i32, t: u32, val: CellState) -> CellState {
         cache.insert((x,y,t),val);
@@ -55,13 +63,13 @@ fn get_cell_at_memo(cache: &mut HashMap<(i32,i32,u32),CellState>, x: i32, y: i32
     }
 }
 
-fn get_cell_memo(cache: &mut HashMap<(i32,i32,u32),CellState>, x: i32, y: i32) -> char {
+fn get_cell_memo(cache: &mut HashMap<(i32,i32,u32),CellState>, x: i32, y: i32) -> CellResult {
     let mut t = 0;
     loop {
         match get_cell_at_memo(cache,x,y,t){
             CellState::Waiting => t+=1,
-            CellState::Accept => return '#',
-            CellState::Reject => return '.',
+            CellState::Accept => return CellResult::Tree,
+            CellState::Reject => return CellResult::Empty,
         }
     }
 }
@@ -70,7 +78,11 @@ fn main() {
     let mut cache : HashMap<(i32,i32,u32),CellState> = HashMap::new();
     for x in 0..100 {
         for y in 0..100 {
-            print!("{}",get_cell_memo(&mut cache,x,y));
+            let s: String = match get_cell_memo(&mut cache,x,y) {
+                CellResult::Tree => "\x1b[42m  \x1b[49m".to_string(),
+                CellResult::Empty => "\x1b[40m  \x1b[49m".to_string(),
+            };
+            print!("{}",s);
         }
         println!();
     }
