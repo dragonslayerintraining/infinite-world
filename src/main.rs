@@ -15,43 +15,52 @@ fn get_cell_seq(x: i32, y: i32,t: u32) -> u64 {
 #[derive(Copy)]
 #[derive(PartialEq)]
 enum CellState{
-    WAITING,
-    TRYING,
-    ACCEPT,
-    REJECT,
+    Waiting,
+    Trying,
+    Accept,
+    Reject,
+}
+
+fn state_is_done(state: CellState) -> bool{
+    match state {
+        CellState::Waiting => false,
+        CellState::Trying => false,
+        CellState::Accept => true,
+        CellState::Reject => true,
+    }
 }
 
 fn cellular_automata_step(input: [[CellState; 3]; 3],r: u64) -> CellState{
-    if input[1][1] == CellState::ACCEPT || input[1][1] == CellState::REJECT {
+    if state_is_done(input[1][1]){
         return input[1][1];
     }
     for i in 0..3 {
         for j in 0..3 {
-            if input[i][j] == CellState::ACCEPT {
-                return CellState::REJECT;
+            if input[i][j] == CellState::Accept {
+                return CellState::Reject;
             }
         }
     }
-    if input[1][1] == CellState::TRYING {
+    if input[1][1] == CellState::Trying {
         let mut flag: bool = false;
         for i in 0..3 {
             for j in 0..3 {
                 if i==1 && j==1 {
                     continue;
                 }
-                if input[i][j] == CellState::TRYING {
+                if input[i][j] == CellState::Trying {
                     flag = true;
                 }
             }
         }
         if !flag {
-            return CellState::ACCEPT;
+            return CellState::Accept;
         }
     }
-    if r%7 == 0 {
-        return CellState::TRYING;
+    if r%9 == 0 {
+        return CellState::Trying;
     }else{
-        return CellState::WAITING;
+        return CellState::Waiting;
     }
 }
 
@@ -60,10 +69,10 @@ fn get_cell_at_memo(cache: &mut HashMap<(i32,i32,u32),CellState>, x: i32, y: i32
         return state.clone();
     }
     if t == 0 {
-        return CellState::WAITING;
+        return CellState::Waiting;
     }
     let old : CellState = get_cell_at_memo(cache,x,y,t-1);
-    if old == CellState::ACCEPT || old == CellState::REJECT {
+    if state_is_done(old) {
         cache.insert((x,y,t),old);
         return old;
     }
@@ -78,27 +87,28 @@ fn get_cell_at_memo(cache: &mut HashMap<(i32,i32,u32),CellState>, x: i32, y: i32
 
 fn cell_to_char(state: CellState) -> char {
     match state{
-        CellState::WAITING=>{'?'}
-        CellState::TRYING=>{'!'}
-        CellState::ACCEPT=>{'#'}
-        CellState::REJECT=>{' '}
+        CellState::Waiting=>{'?'}
+        CellState::Trying=>{'!'}
+        CellState::Accept=>{'#'}
+        CellState::Reject=>{'.'}
     }
 }
 
-fn get_cell(x: i32, y: i32) -> char {
-    let mut cache : HashMap<(i32,i32,u32),CellState> = HashMap::new();
+fn get_cell_memo(cache: &mut HashMap<(i32,i32,u32),CellState>,x: i32, y: i32) -> char {
     let mut t = 0;
-    while get_cell_at_memo(&mut cache,x,y,t) == CellState::WAITING || get_cell_at_memo(&mut cache,x,y,t) == CellState::TRYING {
+    while get_cell_at_memo(cache,x,y,t) == CellState::Waiting || get_cell_at_memo(cache,x,y,t) == CellState::Trying {
         t += 1;
     }
-    return cell_to_char(get_cell_at_memo(&mut cache,x,y,t));
+    return cell_to_char(get_cell_at_memo(cache,x,y,t));
 }
 
 fn main() {
-    for x in 0..50 {
-        for y in 0..50 {
-            print!("{}",get_cell(x,y));
+    let mut cache : HashMap<(i32,i32,u32),CellState> = HashMap::new();
+    for x in 0..100 {
+        for y in 0..100 {
+            print!("{}",get_cell_memo(&mut cache,x,y));
         }
         println!();
     }
+    println!("Cache size: {}",cache.len());
 }
