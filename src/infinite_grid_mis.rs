@@ -38,8 +38,8 @@ fn get_cell_at_memo(cache: &mut HashMap<(i32,i32,u32),CellState>, x: i32, y: i32
     }
 
     let mut score: u64 = 0;
-    for dx in -1..2 {
-        for dy in -1..2 {
+    for dx in -1..=1 {
+        for dy in -1..=1 {
             if dx==0 && dy==0 { continue; }
             match get_cell_at_memo(cache,x+dx,y+dy,t-1) {
                 CellState::Waiting => score = max(score,get_cell_seq(x+dx,y+dy,t-1)),

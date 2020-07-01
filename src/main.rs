@@ -29,10 +29,12 @@ impl event::EventHandler for MainState {
     }
     fn draw(&mut self, ctx:&mut Context) -> GameResult {
         graphics::clear(ctx, [0.1,0.2,0.0,1.0].into());
+
         let green = graphics::Color::new(0.0,1.0,0.0,1.0);
-        let circle = graphics::Mesh::new_circle(ctx,graphics::DrawMode::fill(),
+        let green_circle = graphics::Mesh::new_circle(ctx,graphics::DrawMode::fill(),
                                                  na::Point2::new(0.0,0.0),
                                                  18.0,2.0,green,)?;
+
         let transform = na::geometry::Similarity2::new(na::Point::origin()-self.camera,0.0,20.0);
         let screen_rect = ggez::graphics::screen_coordinates(ctx);
 
@@ -43,10 +45,9 @@ impl event::EventHandler for MainState {
         for x in (visible_topleft.x.floor() as i32)..=(visible_bottomright.x.ceil() as i32) {
             for y in (visible_topleft.y.floor() as i32)..=(visible_bottomright.y.ceil() as i32) {
                 let coords = transform * na::Point2::new(x as f32, y as f32);
-                //if !screen_rect.contains(coords){ continue; }
                 match self.cache.get(x,y) {
                     true => {
-                        graphics::draw(ctx,&circle,(coords,))?;
+                        graphics::draw(ctx,&green_circle,(coords,))?;
                     },
                     false => (),
                 };
@@ -75,20 +76,4 @@ pub fn main() -> GameResult {
     let (ctx,event_loop)=&mut cb.build()?;
     let state = &mut MainState::new()?;
     event::run(ctx,event_loop,state)
-}
-
-//Old version that would output world with ANSI escape codes
-fn ansi_main() {
-    let mut cache : infinite_grid_mis::Cache = infinite_grid_mis::Cache::new();
-    for x in 0..100 {
-        for y in 0..100 {
-            let s: String = match cache.get(x,y) {
-                true => "\x1b[42m  \x1b[49m".to_string(),
-                false => "\x1b[40m  \x1b[49m".to_string(),
-            };
-            print!("{}",s);
-        }
-        println!();
-    }
-    //println!("Cache size: {}",cache.len());
 }
